@@ -1,4 +1,5 @@
 import express from "express";
+import candidateRoutes from "./routes/candidateRoutes.js";
 
 const app = express();
 
@@ -9,5 +10,7 @@ app.get("/health", (req, res) => {
     status: "ok"
   });
 });
+
+app.use("/candidates", candidateRoutes);
 
 export default app;
