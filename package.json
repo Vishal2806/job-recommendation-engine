@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Vishal2806/job-recommendation-engine/issues"
   },
-  "homepage": "https://github.com/Vishal2806/job-recommendation-engine#readme"
+  "homepage": "https://github.com/Vishal2806/job-recommendation-engine#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
