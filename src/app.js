@@ -1,5 +1,6 @@
 import express from "express";
 import candidateRoutes from "./routes/candidateRoutes.js";
+import jobRoutes from "./routes/jobRoutes.js";
 
 const app = express();
 
@@ -12,5 +13,6 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/candidates", candidateRoutes);
+app.use("/jobs", jobRoutes);
 
 export default app;
