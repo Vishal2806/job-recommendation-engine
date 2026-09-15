@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: job-recommendation-db
+    environment:
+      POSTGRES_DB: job_recommendation_engine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/db/migrations/001_create_tables.sql:/docker-entrypoint-initdb.d/001_create_tables.sql:ro
+
+  api:
+    build: .
+    container_name: job-recommendation-api
+    depends_on:
+      - postgres
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: job_recommendation_engine
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  
