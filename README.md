@@ -25,9 +25,9 @@ The system uses a rule-based scoring algorithm to rank eligible jobs from the mo
 
 ## Tech Stack
 
-* **Node.js**
+* **Node.js 20** (API container uses Alpine image)
 * **Express.js**
-* **PostgreSQL**
+* **PostgreSQL 16**
 * **JavaScript (ES Modules)**
 * **pg**
 * **dotenv**
@@ -44,6 +44,8 @@ job-recommendation-engine/
 ├── .gitignore
 ├── .env
 ├── .env.example
+├── docker-compose.yml
+├── Dockerfile
 ├── src/
 │   ├── app.js
 │   ├── server.js
@@ -51,7 +53,8 @@ job-recommendation-engine/
 │   ├── controllers/
 │   │   ├── candidateController.js
 │   │   ├── jobController.js
-│   │   └── recommendationController.js
+│   │   ├── recommendationController.js
+│   │   └── reverseRecommendationController.js
 │   │
 │   ├── db/
 │   │   ├── connection.js
@@ -72,7 +75,8 @@ job-recommendation-engine/
 │   ├── services/
 │   │   ├── candidateService.js
 │   │   ├── jobService.js
-│   │   └── recommendationService.js
+│   │   ├── recommendationService.js
+│   │   └── reverseRecommendationService.js
 │   │
 │   └── validators/
 │       ├── candidateValidator.js
@@ -88,9 +92,61 @@ job-recommendation-engine/
 
 Make sure the following are installed:
 
-* Node.js 18+
+* Node.js 20+
 * npm
-* PostgreSQL 12+
+* PostgreSQL 16+
+
+---
+
+# Docker Compose Setup
+
+This project includes a working Docker Compose setup for local development.
+
+## 1. Build and start the application
+
+```bash
+docker compose up -d --build
+```
+
+This starts:
+
+* The API container using Node.js 20 Alpine
+* A PostgreSQL 16 database container
+* The API on port `3000`
+
+The database is initialized using:
+
+```text
+src/db/migrations/001_create_tables.sql
+```
+
+PostgreSQL is used over the internal Docker network as `postgres:5432` and does not need to be exposed on the host as port `5432`.
+
+## 2. Check the running containers
+
+```bash
+docker compose ps
+```
+
+## 3. Test the API
+
+```bash
+curl http://localhost:3000/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+## 4. Stop the application
+
+```bash
+docker compose down
+```
 
 ---
 
@@ -343,6 +399,65 @@ Example response:
       "job": {
         "id": 1,
         "title": "Backend Developer"
+      },
+      "eligible": true,
+      "score": 83.5,
+      "breakdown": {
+        "skills": "37.5/50",
+        "experience": "16/20",
+        "location": "15/15",
+        "salary": "15/15"
+      },
+      "matchedSkills": [
+        "Node.js",
+        "Express.js",
+        "PostgreSQL"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 4. Get Candidates Ranked for a Job
+
+```http
+GET /jobs/:jobId/recommendations
+```
+
+This endpoint returns candidates ranked for the specified job. It uses the same overall scoring system as candidate-to-job recommendations, returns candidates sorted by score in descending order, supports the optional `limit` query parameter, and excludes candidates who are missing any must-have skill.
+
+It returns:
+
+* `404` when the job does not exist
+* `400` for an invalid job ID or invalid limit
+
+Example:
+
+```http
+GET /jobs/1/recommendations?limit=5
+```
+
+Example response:
+
+```json
+{
+  "jobId": 1,
+  "count": 2,
+  "recommendations": [
+    {
+      "candidate": {
+        "id": 1,
+        "name": "Vishal Vishwakarma",
+        "skills": [
+          "Node.js",
+          "Express.js",
+          "PostgreSQL"
+        ],
+        "years_of_experience": "1.60",
+        "location": "Bilaspur",
+        "expected_salary": 1200000
       },
       "eligible": true,
       "score": 83.5,
@@ -938,15 +1053,9 @@ Possible improvements for a production version include:
 * Pagination for large job datasets
 * Caching frequently requested recommendations
 * API integration tests
-* Docker and Docker Compose
 * Recommendation explanation improvements
 * Job filtering by additional attributes such as employment type and industry
 * Machine-learning-based ranking after sufficient historical recommendation data is available
-* Reverse recommendation endpoint such as:
-
-```http
-GET /jobs/:jobId/recommendations
-```
 
 ---
 
@@ -984,12 +1093,13 @@ The following were intentionally not implemented because they were outside the a
 
 # API Summary
 
-| Method | Endpoint                                   | Description                    |
-| ------ | ------------------------------------------ | ------------------------------ |
-| GET    | `/health`                                  | Health check                   |
-| POST   | `/candidates`                              | Create candidate               |
-| POST   | `/jobs`                                    | Create job                     |
-| GET    | `/candidates/:candidateId/recommendations` | Get ranked job recommendations |
+| Method | Endpoint                                   | Description                             |
+| ------ | ------------------------------------------ | --------------------------------------- |
+| GET    | `/health`                                  | Health check                            |
+| POST   | `/candidates`                              | Create candidate                        |
+| POST   | `/jobs`                                    | Create job                              |
+| GET    | `/candidates/:candidateId/recommendations` | Get ranked job recommendations          |
+| GET    | `/jobs/:jobId/recommendations`             | Get ranked candidates for a job         |
 
 ---
 
