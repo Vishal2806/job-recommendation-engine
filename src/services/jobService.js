@@ -11,3 +11,15 @@ export const getAllJobs = async () => {
 
   return result.rows;
 };
+export const getJobById = async (jobId) => {
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM jobs
+    WHERE id = $1
+    `,
+    [jobId]
+  );
+
+  return result.rows[0];
+};

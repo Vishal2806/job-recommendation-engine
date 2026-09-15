@@ -12,3 +12,14 @@ export const getCandidateById = async (candidateId) => {
 
   return result.rows[0];
 };
+export const getAllCandidates = async () => {
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM candidates
+    ORDER BY id ASC
+    `
+  );
+
+  return result.rows;
+};
