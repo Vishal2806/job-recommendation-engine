@@ -3,11 +3,12 @@ import { getRecommendations } from "../services/recommendationService.js";
 export const getCandidateRecommendations = async (req, res) => {
   try {
     const { candidateId } = req.params;
-    const limit = Number(req.query.limit) || 5;
+    const rawLimit = req.query.limit;
+    const limit = rawLimit === undefined ? 5 : Number(rawLimit);
 
-    if (limit <= 0) {
+    if (!Number.isInteger(limit) || limit <= 0) {
       return res.status(400).json({
-        message: "Limit must be greater than 0"
+        message: "Limit must be a positive integer"
       });
     }
 
