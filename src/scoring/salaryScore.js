@@ -5,16 +5,7 @@ export const calculateSalaryScore = (
 ) => {
   const maxScore = 15;
 
-  // Job cannot meet the candidate's expectation.
-  if (salaryMax < expectedSalary) {
-    return {
-      score: 0,
-      maxScore,
-      reason: "Job salary is below expected salary"
-    };
-  }
-
-  // Expected salary is within the job's range.
+  // Candidate's expectation is within the job's salary range.
   if (
     expectedSalary >= salaryMin &&
     expectedSalary <= salaryMax
@@ -26,7 +17,7 @@ export const calculateSalaryScore = (
     };
   }
 
-  // Job range starts above candidate's expectation.
+  // Job offers more than the candidate expects.
   if (salaryMin > expectedSalary) {
     return {
       score: maxScore,
@@ -35,9 +26,17 @@ export const calculateSalaryScore = (
     };
   }
 
-  return {
-    score: 0,
+  // Job cannot fully meet the candidate's expectation.
+  // Give a proportional score based on how close the
+  // maximum offered salary is to the expectation.
+  const score = Math.min(
     maxScore,
-    reason: "Salary mismatch"
+    (salaryMax / expectedSalary) * maxScore
+  );
+
+  return {
+    score: Number(score.toFixed(2)),
+    maxScore,
+    reason: "Job salary partially meets expected salary"
   };
 };

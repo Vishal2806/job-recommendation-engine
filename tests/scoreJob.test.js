@@ -63,3 +63,56 @@ assert.deepEqual(
 );
 
 console.log("✅ must-have skill filter test passed");
+
+const salaryBelowExpectationCandidate = {
+  ...candidate,
+  expected_salary: 1200000
+};
+
+const salaryBelowExpectationJob = {
+  ...job,
+  salary_min: 800000,
+  salary_max: 1000000
+};
+
+const salaryResult = scoreJob(
+  salaryBelowExpectationCandidate,
+  salaryBelowExpectationJob
+);
+
+assert.equal(salaryResult.breakdown.salary, "12.5/15");
+
+console.log("✅ partial salary match test passed");
+
+const salaryAboveExpectationJob = {
+  ...job,
+  salary_min: 1500000,
+  salary_max: 1800000
+};
+
+const highSalaryResult = scoreJob(
+  candidate,
+  salaryAboveExpectationJob
+);
+
+assert.equal(highSalaryResult.breakdown.salary, "15/15");
+
+console.log("✅ salary above expectation test passed");
+
+const lowExperienceCandidate = {
+  ...candidate,
+  years_of_experience: "1.00"
+};
+
+const lowExperienceResult = scoreJob(
+  lowExperienceCandidate,
+  job
+);
+
+assert.equal(lowExperienceResult.eligible, true);
+assert.equal(
+  lowExperienceResult.breakdown.experience,
+  "10/20"
+);
+
+console.log("✅ experience penalty test passed");
